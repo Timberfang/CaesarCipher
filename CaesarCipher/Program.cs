@@ -8,6 +8,8 @@ internal static class Program
 	{
 		var inputOption = new Option<string>("--input", "Input text") { IsRequired = true };
 		var shiftOption = new Option<int>("--shift", "How much to shift the text") { IsRequired = true };
+		inputOption.AddAlias("-i");
+		shiftOption.AddAlias("-s");
 		shiftOption.AddValidator(result =>
 		{
 			try
