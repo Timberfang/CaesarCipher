@@ -8,6 +8,20 @@ internal static class Program
 	{
 		var inputOption = new Option<string>("--input", "Input text") { IsRequired = true };
 		var shiftOption = new Option<int>("--shift", "How much to shift the text") { IsRequired = true };
+		shiftOption.AddValidator(result =>
+		{
+			try
+			{
+				if (result.GetValueForOption(shiftOption) < 0)
+				{
+					result.ErrorMessage = $"Shift must be between 0 and {int.MaxValue}.";
+				}
+			}
+			catch (InvalidOperationException)
+			{
+				result.ErrorMessage = $"Shift must be between 0 and {int.MaxValue}.";
+			}
+		});
 
 		var rootCommand = new RootCommand("Caesar cipher implementation using C#.");
 		var encryptCommand = new Command("encrypt", "Encrypt the text")

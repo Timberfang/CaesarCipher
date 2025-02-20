@@ -11,7 +11,7 @@ public static class CaesarCipher
 	{
 		// Clean up input
 		input = input.Replace(" ", "");
-		if (shift >= Alphabet.Length) { shift -= Alphabet.Length; }
+		shift = CheckShift(shift);
 		char[] output = input.ToUpper().ToCharArray();
 
 		// Shift characters forward to encrypt
@@ -28,7 +28,7 @@ public static class CaesarCipher
 	public static string Decrypt(string input, int shift)
 	{
 		// Clean up input
-		if (shift >= Alphabet.Length) { shift -= Alphabet.Length; }
+		shift = CheckShift(shift);
 		char[] output = input.ToCharArray();
 
 		// Shift characters *back* to decrypt
@@ -55,5 +55,15 @@ public static class CaesarCipher
 		}
 		
 		return output;
+	}
+
+	private static int CheckShift(int shift)
+	{
+		// Int parameter type already ensures that value is <= int.MaxValue.
+		if (shift < 0) { throw new ArgumentOutOfRangeException(nameof(shift), $"Shift must be between 0 and {int.MaxValue}."); }
+		// Integer division truncates decimal points
+		// e.g. shift of 70 is processed to (70 / 26) = 2.69... which is truncated to 2; 70 - (26 * 2) = 18
+		if (shift >= Alphabet.Length) { shift -= Alphabet.Length * (shift / Alphabet.Length); }
+		return shift;
 	}
 }
