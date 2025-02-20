@@ -1,51 +1,49 @@
-using Spectre.Console;
+using System.CommandLine;
 
 namespace CaesarCipher;
 
 internal static class Program
 {
-	private static void Main()
+	private static async Task<int> Main(string[] args)
 	{
-		AnsiConsole.WriteLine("WARNING");
-		AnsiConsole.WriteLine("This program implements the Caesar cipher for educational purposes only.");
-		AnsiConsole.WriteLine("The Caesar cipher is not secure, and should not be used for sensitive data.");
-		AnsiConsole.WriteLine("Assume any string 'encrypted' by the Caesar cipher is no more secure than plain text.");
-		AnsiConsole.WriteLine();
+		var inputOption = new Option<string>("--input", "Input text") { IsRequired = true };
+		var shiftOption = new Option<int>("--shift", "How much to shift the text") { IsRequired = true };
 
-		string choice = AnsiConsole.Prompt(
-			new SelectionPrompt<string>()
-				.Title("What would you like to do?")
-				.AddChoices("Encrypt", "Decrypt", "Brute-force Decrypt"));
-
-		string input;
-		int shift;
-		switch (choice)
+		var rootCommand = new RootCommand("Caesar cipher implementation using C#.");
+		var encryptCommand = new Command("encrypt", "Encrypt the text")
 		{
-			case "Encrypt":
-				input = AnsiConsole.Prompt(
-					new TextPrompt<string>("Enter input string - letters and spaces only, please:")
-						.Validate(c => c.All(d => char.IsLetter(d) || char.IsWhiteSpace(d))));
-				shift = AnsiConsole.Ask<int>("How much do you want to shift the characters by?");
-				string encrypted = CaesarCipher.Encrypt(input, shift);
-				AnsiConsole.WriteLine($"Encrypted string: {encrypted}");
-				break;
-			case "Decrypt":
-				input = AnsiConsole.Prompt(
-					new TextPrompt<string>("Enter input string - letters and spaces only, please:")
-						.Validate(c => c.All(d => char.IsLetter(d) || char.IsWhiteSpace(d))));
-				shift = AnsiConsole.Ask<int>("What shift was used to encrypt the characters?");
-				string decrypted = CaesarCipher.Decrypt(input, shift);
-				Console.WriteLine($"Decrypted string: {decrypted}");
-				break;
-			case "Brute-force Decrypt":
-				input = AnsiConsole.Prompt(
-					new TextPrompt<string>("Enter input string - letters and spaces only, please:")
-						.Validate(c => c.All(d => char.IsLetter(d) || char.IsWhiteSpace(d))));
-				string search = AnsiConsole.Ask<string>("Enter a search string:");
-				var bruteForceDecrypted = CaesarCipher.BruteForceDecrypt(input, search);
-				AnsiConsole.WriteLine($"Outputs containing pattern '{search}':");
-				foreach (var match in bruteForceDecrypted) { AnsiConsole.WriteLine($"- {match.Item2} (Shift: {match.Item1})"); }
-				break;
-		}
+			inputOption,
+			shiftOption
+		};
+		var decryptCommand = new Command("decrypt", "Decrypt the text")
+		{
+			inputOption,
+			shiftOption
+		};
+		var listCommand = new Command("list", "List all possible decrypted texts")
+		{
+			inputOption
+		};
+		rootCommand.AddCommand(encryptCommand);
+		rootCommand.AddCommand(decryptCommand);
+		rootCommand.AddCommand(listCommand);
+
+		encryptCommand.SetHandler((input, shift) =>
+			{
+				 Console.WriteLine(CaesarCipher.Encrypt(input, shift));
+			},
+			inputOption, shiftOption);
+		decryptCommand.SetHandler((input, shift) =>
+			{
+				Console.WriteLine(CaesarCipher.Decrypt(input, shift));
+			},
+			inputOption, shiftOption);
+		listCommand.SetHandler(input =>
+			{
+				var output = CaesarCipher.DecryptAll(input);
+				foreach (var match in output) { Console.WriteLine($"- {match.Item2} ({match.Item1})"); }
+			},
+			inputOption);
+		return await rootCommand.InvokeAsync(args);
 	}
 }

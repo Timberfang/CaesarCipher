@@ -42,17 +42,16 @@ public static class CaesarCipher
 		return new string(output);
 	}
 
-	public static IEnumerable<(int, string)> BruteForceDecrypt(string input, string search)
+	public static IEnumerable<(int, string)> DecryptAll(string input)
 	{
 		// Clean up input
-		char[] searchArray = search.ToUpper().ToCharArray();
 		List<(int, string)> output = [];
 
-		// Try all possibilities, add all where the output contains the search pattern
+		// Return all possibilities
 		for (int i = 1; i < Alphabet.Length; i++)
 		{
 			char[] testArray = Decrypt(input, i).ToCharArray();
-			if (testArray.Intersect(searchArray).Count() == searchArray.Length) { output.Add((i, new string(testArray))); }
+			output.Add((i, new string(testArray)));
 		}
 		
 		return output;
